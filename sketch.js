@@ -17,6 +17,7 @@ let userTyped = false;
 let countdown = 0;
 let countdownStartTime = 0;
 let isCountingDown = false;
+let startButton;
 
 function preload() {
   emotions = [
@@ -96,7 +97,8 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1000, 600);
+  pixelDensity(1);
+  createCanvas(windowWidth, windowHeight);
   imageMode(CENTER);
   textAlign(CENTER, CENTER);
   textSize(18);
@@ -138,6 +140,15 @@ function setup() {
   });
   noteInput.hide();
   
+  startButton = createButton("Tap to Begin 🎵");
+  startButton.position(width/2 - 80, height/2);
+  startButton.mousePressed(initInteraction);
+  
+}
+
+function initInteraction() {
+  userStartAudio(); // Cho phép phát âm thanh
+  startButton.hide();
 }
 
 function startCamera() {
@@ -323,20 +334,23 @@ function captureAndSave() {
 }
 
 function saveCapturedImage() {
-  let snapshot = createGraphics(width, height);
-  snapshot.image(cam, 0, 0, width, height);
-  snapshot.fill(255, 220);
-  snapshot.rect(0, height - 100, width, 100);
-
+  let c = get(); // Lấy ảnh hiện tại trên canvas
   let noteText = noteInput.value();
 
+  // Ghi chú lên ảnh
+  let snapshot = createGraphics(width, height);
+  snapshot.image(c, 0, 0);
+  snapshot.fill(255, 230);
+  snapshot.rect(0, height - 100, width, 100);
   snapshot.textAlign(CENTER, CENTER);
   snapshot.textSize(18);
   snapshot.fill(0);
   snapshot.text(noteText, width / 2, height - 60);
 
+  snapshot.loadPixels(); // Bắt buộc để hiển thị đúng trên mobile
   save(snapshot, 'postcard.jpg');
 }
+
 
 function resetToEmotionScreen() {
   emotionSelected = false;
@@ -350,6 +364,6 @@ function resetToEmotionScreen() {
   backButton.hide();
   noteInput.hide();
 }
-
-
-
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
