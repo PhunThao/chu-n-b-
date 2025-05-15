@@ -1,23 +1,22 @@
-let emotions = []; // Array to store different emotional states
-let icons = []; // Array to store icon data for each emotion
-let currentMessage = ""; // Message shown based on selected emotion
-let currentSound = null; // The current sound being played
-let fft; // Fast Fourier Transform object for audio visualization
-let currentVisualizerColor; // The color used in the visualizer
-let emotionSelected = false; // Flag to check if an emotion is selected
-let fadeAlpha = 255; // For fading text when emotion is selected
-let cam; // Camera object
-let cameraStarted = false; // Check if the camera has started
-let particles = []; // Particle effect array
-let captureButton; // Button to save current emotional state as image
-let backButton; // Button to return to the emotion selection screen
-let noteInput; // Input box for user to leave a personal note
-let placeholderText = "Leave a note for yourself..."; // Placeholder text
-let userTyped = false; // Flag to check if user has typed in the note
-let countdown = 0; // Countdown duration for saving image
-let countdownStartTime = 0; // Start time of countdown
-let isCountingDown = false; // Whether countdown is currently active
-let startButton; // Button to start the whole experience
+let emotions = [];
+let icons = [];
+let currentMessage = "";
+let currentSound = null;
+let fft;
+let currentVisualizerColor;
+let emotionSelected = false;
+let fadeAlpha = 255;
+let cam;
+let cameraStarted = false;
+let particles = [];
+let captureButton;
+let backButton;
+let noteInput;
+let placeholderText = "Leave a note for yourself...";
+let userTyped = false;
+let countdown = 0;
+let countdownStartTime = 0;
+let isCountingDown = false;
 
 function preload() {
   emotions = [
@@ -71,7 +70,7 @@ function preload() {
     },
     {
     label: "Sadness",
-    img: loadImage("sad.png"), 
+    img: loadImage("sad.png"), // Bạn cần có file sad.png
     sounds: [
       loadSound("sad1.mp3"),
       loadSound("sad2.mp3"),
@@ -83,7 +82,7 @@ function preload() {
   },
   {
     label: "Anger",
-    img: loadImage("angry.png"),
+    img: loadImage("angry.png"), // Bạn cần có file angry.png
     sounds: [
       loadSound("angry1.mp3"),
       loadSound("angry2.mp3"),
@@ -97,18 +96,17 @@ function preload() {
 }
 
 function setup() {
-  pixelDensity(1); // Ensures consistent display on all screens
-  createCanvas(windowWidth, windowHeight); // Creates canvas that fits window
-  imageMode(CENTER); // Images are drawn from their center
-  textAlign(CENTER, CENTER); // Center-align text
-  textSize(18); // Default text size
-  noStroke(); // Disable outlines for shapes
-  fft = new p5.FFT(); // Initialize FFT for audio spectrum
+  createCanvas(1000, 600);
+  imageMode(CENTER);
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  noStroke();
+  fft = new p5.FFT();
 
-  let spacing = width / (emotions.length + 1); // Calculate spacing between icons
+  let spacing = width / (emotions.length + 1);
   for (let i = 0; i < emotions.length; i++) {
     let e = emotions[i];
-    icons.push({ // Create icon data for each emotion
+    icons.push({
       label: e.label,
       x: spacing * (i + 1),
       y: height / 2,
@@ -120,62 +118,57 @@ function setup() {
     });
   }
 
-  captureButton = createButton('📸 Save your emotional journey'); // Button to save snapshot
+  captureButton = createButton('📸 Save your emotional journey');
   captureButton.position(width - 150, height - 50);
   captureButton.mousePressed(captureAndSave);
-  captureButton.hide(); // Initially hidden
+  captureButton.hide();
 
-  backButton = createButton('Return'); // Button to go back to emotion menu
+  backButton = createButton('Return');
   backButton.position(50, height - 50);
   backButton.mousePressed(resetToEmotionScreen);
   backButton.hide();
 
-  noteInput = createInput(''); // Input for user message
+  noteInput = createInput('');
   noteInput.position(width / 2 - 150, height - 100);
   noteInput.size(300, 40);
   noteInput.input(() => {
     if (noteInput.value().length > 0) {
-      userTyped = true; // Track if user typed something
+      userTyped = true;
     }
   });
   noteInput.hide();
-
-  startButton = createButton("Tap to Begin 🎵"); // Initial start button
-  startButton.position(width / 2 - 80, height / 2);
-  startButton.mousePressed(initInteraction);
+  
 }
 
-function initInteraction() {
-  userStartAudio(); // Required to enable sound in browser on interaction
-  startButton.hide(); // Hide the start button after clicked
-}
+function startCamera() {
+  cam = createCapture(VIDEO);
+  cam.size(width, height);
+  cam.elt.muted = true;
+  cam.hide();
 
-function initInteraction() {
-  userStartAudio(); // Required to enable sound in browser on interaction
-  startButton.hide(); // Hide the start button after clicked
+  captureButton.show();
+  backButton.show();
+  noteInput.show();
 }
 
 function draw() {
-  background(255); // Clear background to white
+  background(255);
 
-  // Show webcam + overlay if emotion is selected and music is playing
   if (cam && emotionSelected && currentSound && currentSound.isPlaying()) {
     push();
     tint(255, 255);
-    image(cam, width / 2, height / 2, width, height); // Show webcam
+    image(cam, width / 2, height / 2, width, height);
     fill(255, 255, 255, 30);
-    rect(0, 0, width, height); // White overlay
+    rect(0, 0, width, height);
     pop();
   }
 
   if (!emotionSelected) {
-    // Display introduction message
     fill(100, fadeAlpha);
     textSize(24);
     text("Pause, embrace your feelings—let them soothe and empower your soul🌿🕊️", width / 2, 40);
     textSize(18);
 
-    // Show all emotion icons with hover effect
     for (let icon of icons) {
       icon.hovered = dist(mouseX, mouseY, icon.x, icon.y) < 60;
       if (icon.hovered) {
@@ -189,41 +182,37 @@ function draw() {
       push();
       translate(icon.x + shake, icon.y + shake);
       scale(scaleAmt);
-      image(icon.img, 0, 0, 100, 100); // Draw emotion icon
+      image(icon.img, 0, 0, 100, 100);
       pop();
 
       fill(50);
-      text(icon.label, icon.x, icon.y + 80); // Draw label
+      text(icon.label, icon.x, icon.y + 80);
     }
   } else {
-    // Fade out message after selection
     fadeAlpha -= 5;
     if (fadeAlpha < 0) fadeAlpha = 0;
   }
 
-  // Show the emotional message
   if (currentMessage !== "") {
     textSize(22);
-    let offsetY = sin(frameCount * 0.05) * 5; // Floating effect
+    let offsetY = sin(frameCount * 0.05) * 5;
     let lerpedColor = lerpColor(color(50), currentVisualizerColor, sin(frameCount * 0.05) * 0.5 + 0.5);
     fill(lerpedColor);
-    text(currentMessage, width / 2, 40 + offsetY); // Show message at top
+    text(currentMessage, width / 2, 40 + offsetY);
     textSize(18);
   }
 
   if (!userTyped && emotionSelected) {
-    // Show placeholder if user hasn't typed yet
     fill(150);
     textSize(16);
     text(placeholderText, width / 2, height - 80);
   }
 
   if (emotionSelected && currentSound && currentSound.isPlaying()) {
-    drawBarVisualizer(); // Show sound visualizer
-    updateParticles(); // Update background particle effects
+    drawBarVisualizer();
+    updateParticles();
   }
 
-  // Show countdown before saving image
   if (isCountingDown) {
     let elapsed = int((millis() - countdownStartTime) / 1000);
     let remaining = countdown - elapsed;
@@ -231,38 +220,39 @@ function draw() {
     if (remaining >= 0) {
       fill(0, 150);
       textSize(64);
-      text(remaining + 1, width / 2, height / 2); // Show countdown
+      text(remaining + 1, width / 2, height / 2);
     }
 
     if (remaining < 0) {
       isCountingDown = false;
-      saveCapturedImage(); // Save image after countdown ends
+      saveCapturedImage();
     }
   }
-}
+} 
+
 function drawBarVisualizer() {
-  let spectrum = fft.analyze(); // Get sound spectrum
+  let spectrum = fft.analyze();
   let w = width / spectrum.length;
 
   noStroke();
   for (let i = 0; i < spectrum.length; i++) {
     let amp = spectrum[i];
-    let h = map(amp, 0, 256, 0, height); // Map amplitude to height
+    let h = map(amp, 0, 256, 0, height);
     let x = i * w;
     fill(currentVisualizerColor);
-    rect(x, height - h, w - 2, h); // Draw each bar
+    rect(x, height - h, w - 2, h);
   }
 }
 
 function mousePressed() {
   if (!emotionSelected) {
-    stopAllSounds(); // Stop any playing sounds
+    stopAllSounds();
     currentMessage = "";
-    currentVisualizerColor = color(100, 150, 255); // Default color
+    currentVisualizerColor = color(100, 150, 255);
 
     for (let icon of icons) {
       if (icon.hovered) {
-        let randomSound = random(icon.sounds); // Pick a random track
+        let randomSound = random(icon.sounds);
         currentSound = randomSound;
         currentSound.setVolume(1.0);
         currentSound.play();
@@ -277,7 +267,7 @@ function mousePressed() {
         emotionSelected = true;
 
         if (!cameraStarted) {
-          startCamera(); // Start webcam if not started
+          startCamera();
           cameraStarted = true;
         } else {
           captureButton.show();
@@ -285,7 +275,7 @@ function mousePressed() {
           noteInput.show();
         }
 
-        createParticles(icon.color); // Start background effect
+        createParticles(icon.color);
       }
     }
   }
@@ -294,7 +284,7 @@ function mousePressed() {
 function stopAllSounds() {
   for (let icon of icons) {
     for (let s of icon.sounds) {
-      if (s.isPlaying()) s.stop(); // Stop all sounds
+      if (s.isPlaying()) s.stop();
     }
   }
 }
@@ -321,40 +311,31 @@ function updateParticles() {
 
     p.x += p.vx;
     p.y += p.vy;
-    p.alpha -= 3; // Fade out
+    p.alpha -= 3;
   }
-  particles = particles.filter(p => p.alpha > 0); // Remove faded particles
+  particles = particles.filter(p => p.alpha > 0);
 }
 
 function captureAndSave() {
-  countdown = 5; // Set countdown time
+  countdown = 5;
   countdownStartTime = millis();
   isCountingDown = true;
 }
 
 function saveCapturedImage() {
-  let c = get(); 
+  let snapshot = createGraphics(width, height);
+  snapshot.image(cam, 0, 0, width, height);
+  snapshot.fill(255, 220);
+  snapshot.rect(0, height - 100, width, 100);
+
   let noteText = noteInput.value();
 
-  let snapshot = createGraphics(width, height);
-  snapshot.image(c, 0, 0);
-  snapshot.fill(255, 230);
-  snapshot.rect(0, height - 100, width, 100);
   snapshot.textAlign(CENTER, CENTER);
   snapshot.textSize(18);
   snapshot.fill(0);
   snapshot.text(noteText, width / 2, height - 60);
 
-  snapshot.loadPixels();
-  let imgData = snapshot.canvas.toDataURL("image/png");
-
-  // Tạo link tải ảnh
-  let a = document.createElement('a');
-  a.href = imgData;
-  a.download = 'emotional_postcard.png';
-  document.body.appendChild(a);
-  a.click(); // Kích hoạt tải về
-  document.body.removeChild(a);
+  save(snapshot, 'postcard.jpg');
 }
 
 function resetToEmotionScreen() {
@@ -363,12 +344,9 @@ function resetToEmotionScreen() {
   stopAllSounds();
   currentMessage = "";
   particles = [];
-  noteInput.value(""); // Clear input
+  noteInput.value("");
   userTyped = false;
   captureButton.hide();
   backButton.hide();
   noteInput.hide();
-}
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
 }
