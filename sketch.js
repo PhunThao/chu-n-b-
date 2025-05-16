@@ -71,7 +71,7 @@ function preload() {
     },
     {
     label: "Sadness",
-    img: loadImage("sad.png"), // Bạn cần có file sad.png
+    img: loadImage("sad.png"), 
     sounds: [
       loadSound("sad1.mp3"),
       loadSound("sad2.mp3"),
@@ -83,7 +83,7 @@ function preload() {
   },
   {
     label: "Anger",
-    img: loadImage("angry.png"), // Bạn cần có file angry.png
+    img: loadImage("angry.png"), 
     sounds: [
       loadSound("angry1.mp3"),
       loadSound("angry2.mp3"),
